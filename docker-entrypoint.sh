@@ -2,7 +2,6 @@
 set -e
 
 if [ ! -f index.php ]; then
-    git config --global --unset http.proxy
     git clone --depth 1 -q ${REPO_URL} .
     rm -rf .git*
     chmod a+rw -R application runtime upload static addons
