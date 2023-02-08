@@ -2,38 +2,31 @@
 # Dockerfile for MACCMS
 #
 
-FROM php:7.4-apache
+FROM php:apache-stretch
 
-COPY docker-entrypoint.sh /entrypoint.sh
+ADD sources.list etc/apt/
 
-ENV REPO_URL https://gitee.com/aulan/maccms10.git
+RUN apt-get update && apt-get install -y \
+        unzip \
+        libzip-dev \
+        libfreetype6-dev \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install fileinfo \
+    && docker-php-ext-install zip \
+    && docker-php-ext-configure gd \
+        --with-freetype-dir=/usr/include/freetype2 \
+    && docker-php-ext-install -j$(nproc) gd
 
-RUN set -ex \
-    && apt-get update && apt-get install -y \
-       git \
-       unzip \
-       libfreetype-dev \
-       libjpeg-dev \
-       libwebp-dev \
-       libzip-dev \
-    && docker-php-ext-install -j$(nproc) mysqli pdo_mysql sockets zip \
-    && docker-php-ext-configure gd \
-        --with-freetype \
-        --with-jpeg \
-        --with-webp \
-    && docker-php-ext-install -j$(nproc) gd \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+ENV CMS_WWW_ROOT var/www/html
 
-RUN set -ex \
-    && mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && echo "ServerName localhost" >> /etc/apache2/apache2.conf
+ADD maccms.zip tmp/maccms.zip
 
-VOLUME /var/www/html
+RUN unzip tmp/maccms.zip \
+    && mv maccms/* ${CMS_WWW_ROOT} \
+    && cd ${CMS_WWW_ROOT} \
+    && mv admin.php cmsadmin.php \
+    && chmod a+rw -R application runtime upload static addons \
+    && rm -rf var/lib/apt/lists/*
 
-ENV ADMIN_PHP cmsadmin.php
-
-EXPOSE 80
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["apache2-foreground"]
+EXPOSE 80
