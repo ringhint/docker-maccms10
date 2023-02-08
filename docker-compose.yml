@@ -11,6 +11,8 @@ services:
     maccms-db:
         image: mariadb:10.3
         container_name: maccms-db
+        ports:
+            - 3306:3306
         restart: always
         volumes:
             - ./mysql:/var/lib/mysql
