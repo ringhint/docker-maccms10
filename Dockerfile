@@ -31,7 +31,7 @@ RUN set -ex \
 
 VOLUME /var/www/html
 
-ENV ADMIN_PHP cmsadmin.php
+ENV ADMIN_PHP qqcc159.php
 
 EXPOSE 80
 
